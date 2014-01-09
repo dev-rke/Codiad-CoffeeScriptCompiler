@@ -1,4 +1,7 @@
 Codiad-CoffeeScriptCompiler
 ===========================
 
-CoffeeScriptCompiler for Codiad-IDE
+CoffeeScript compiler plugin for Codiad-IDE
+
+This plugin compiles the current coffeescript file on each save and gives you some 
+hints if the file could not be saved due to compilation issues.
