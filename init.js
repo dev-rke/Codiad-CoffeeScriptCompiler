@@ -11,18 +11,21 @@
     		initialization
     */
 
-    function CoffeeScriptCompiler(codiad, scripts, path, curpath) {
-      this.codiad = codiad;
-      this.scripts = scripts;
-      this.path = path;
-      this.curpath = curpath;
+    function CoffeeScriptCompiler(global, jQuery) {
       this.getFileNameWithoutExtension = __bind(this.getFileNameWithoutExtension, this);
       this.getBaseDir = __bind(this.getBaseDir, this);
       this.getExtension = __bind(this.getExtension, this);
       this.compileCoffeeScript = __bind(this.compileCoffeeScript, this);
       this.saveFile = __bind(this.saveFile, this);
+      this.addOpenHandler = __bind(this.addOpenHandler, this);
       this.addSaveHandler = __bind(this.addSaveHandler, this);
+      this.codiad = global.codiad;
+      this.$ = jQuery;
+      this.scripts = document.getElementsByTagName('script');
+      this.path = this.scripts[this.scripts.length - 1].src.split('?')[0];
+      this.curpath = this.path.split('/').slice(0, -1).join('/') + '/';
       this.addSaveHandler();
+      this.addOpenHandler();
     }
 
     /*
@@ -33,32 +36,65 @@
     CoffeeScriptCompiler.prototype.addSaveHandler = function() {
       var _this = this;
       return amplify.subscribe('active.onSave', function() {
-        var compiledContent, content, editorPath, editorSession, exception, ext, fileName;
-        editorPath = _this.codiad.active.getPath();
-        ext = _this.getExtension(editorPath);
-        if (ext === 'coffee') {
-          content = _this.codiad.editor.getContent();
-          try {
-            compiledContent = _this.compileCoffeeScript(content);
-          } catch (_error) {
-            exception = _error;
-            _this.codiad.message.error('CoffeeScript compilation failed: ' + exception);
-            if (exception.location) {
-              editorSession = _this.codiad.active.sessions[codiad.active.getPath()];
-              editorSession.setAnnotations([
-                {
-                  row: exception.location.first_line,
-                  column: exception.location.first_column,
-                  text: exception.toString(),
-                  type: "error"
-                }
-              ]);
-            }
-          }
-          fileName = _this.getFileNameWithoutExtension(editorPath) + "js";
-          return _this.saveFile(fileName, compiledContent);
-        }
+        return _this.compileCoffeeScriptAndSave();
       });
+    };
+
+    /*
+    		Add hotkey binding for manual compiling
+    */
+
+
+    CoffeeScriptCompiler.prototype.addOpenHandler = function() {
+      var _this = this;
+      return amplify.subscribe('active.onOpen', function() {
+        var manager;
+        manager = _this.codiad.editor.getActive().commands;
+        return manager.addCommand({
+          name: "Compile CoffeeScript",
+          bindKey: {
+            win: "Ctrl-Alt-C",
+            mac: "Command-Alt-C"
+          },
+          exec: function() {
+            return _this.compileCoffeeScriptAndSave();
+          }
+        });
+      });
+    };
+
+    /*
+    		compiles CoffeeScript and saves it to the same name with a different file extension
+    */
+
+
+    CoffeeScriptCompiler.prototype.compileCoffeeScriptAndSave = function() {
+      var compiledContent, content, editorPath, editorSession, exception, ext, fileName;
+      editorPath = this.codiad.active.getPath();
+      ext = this.getExtension(editorPath);
+      if (ext === 'coffee') {
+        content = this.codiad.editor.getContent();
+        try {
+          compiledContent = this.compileCoffeeScript(content);
+        } catch (_error) {
+          exception = _error;
+          this.codiad.message.error('CoffeeScript compilation failed: ' + exception);
+          if (exception.location) {
+            editorSession = this.codiad.active.sessions[codiad.active.getPath()];
+            editorSession.setAnnotations([
+              {
+                row: exception.location.first_line,
+                column: exception.location.first_column,
+                text: exception.toString(),
+                type: "error"
+              }
+            ]);
+          }
+        }
+        codiad.message.success('CoffeeScript compiled successfully.');
+        fileName = this.getFileNameWithoutExtension(editorPath) + "js";
+        return this.saveFile(fileName, compiledContent);
+      }
     };
 
     /*	
@@ -152,15 +188,6 @@
 
   })();
 
-  (function(global, $) {
-    var codiad, curpath, path, scripts;
-    codiad = global.codiad;
-    scripts = document.getElementsByTagName('script');
-    path = scripts[scripts.length - 1].src.split('?')[0];
-    curpath = path.split('/').slice(0, -1).join('/') + '/';
-    return $(function() {
-      return new codiad.CoffeeScriptCompiler(codiad, scripts, path, curpath);
-    });
-  })(this, jQuery);
+  new codiad.CoffeeScriptCompiler(this, jQuery);
 
 }).call(this);
