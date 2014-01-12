@@ -16,6 +16,7 @@
       this.getBaseDir = __bind(this.getBaseDir, this);
       this.compileCoffeeScript = __bind(this.compileCoffeeScript, this);
       this.saveFile = __bind(this.saveFile, this);
+      this.compileCoffeeScriptAndSave = __bind(this.compileCoffeeScriptAndSave, this);
       this.addOpenHandler = __bind(this.addOpenHandler, this);
       this.addSaveHandler = __bind(this.addSaveHandler, this);
       this.codiad = global.codiad;

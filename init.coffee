@@ -47,7 +47,7 @@ class codiad.CoffeeScriptCompiler
 	###
 		compiles CoffeeScript and saves it to the same name with a different file extension
 	###
-	compileCoffeeScriptAndSave: ->
+	compileCoffeeScriptAndSave: =>
 		currentFile = @codiad.active.getPath()
 		ext = @codiad.filemanager.getExtension(currentFile)
 		if ext.toLowerCase() is 'coffee'
