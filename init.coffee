@@ -48,9 +48,9 @@ class codiad.CoffeeScriptCompiler
 		compiles CoffeeScript and saves it to the same name with a different file extension
 	###
 	compileCoffeeScriptAndSave: ->
-		editorPath = @codiad.active.getPath()
-		ext = @getExtension editorPath
-		if ext is 'coffee'
+		currentFile = @codiad.active.getPath()
+		ext = @codiad.filemanager.getExtension(currentFile)
+		if ext.toLowerCase() is 'coffee'
 			content = @codiad.editor.getContent()
 			try
 				compiledContent = @compileCoffeeScript content
@@ -58,7 +58,7 @@ class codiad.CoffeeScriptCompiler
 				# show error message and editor annotation
 				@codiad.message.error 'CoffeeScript compilation failed: ' + exception
 				if exception.location
-					editorSession = @codiad.active.sessions[codiad.active.getPath()]
+					editorSession = @codiad.active.sessions[currentFile]
 					editorSession.setAnnotations([
 						row:    exception.location.first_line
 						column: exception.location.first_column
@@ -67,7 +67,7 @@ class codiad.CoffeeScriptCompiler
 					])
 			#console.log(compiledContent);
 			codiad.message.success 'CoffeeScript compiled successfully.'
-			fileName = @getFileNameWithoutExtension(editorPath) + "js"
+			fileName = @getFileNameWithoutExtension(currentFile) + "js"
 			@saveFile fileName, compiledContent
 	
 	
@@ -121,13 +121,6 @@ class codiad.CoffeeScriptCompiler
 			CoffeeScript.compile content
 		catch exception
 			throw exception
-	
-	
-	###
-		Get extension of file
-	###
-	getExtension: (filepath) =>
-		filepath.substring filepath.lastIndexOf(".") + 1
 	
 	
 	###

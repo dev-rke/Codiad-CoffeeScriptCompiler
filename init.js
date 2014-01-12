@@ -14,7 +14,6 @@
     function CoffeeScriptCompiler(global, jQuery) {
       this.getFileNameWithoutExtension = __bind(this.getFileNameWithoutExtension, this);
       this.getBaseDir = __bind(this.getBaseDir, this);
-      this.getExtension = __bind(this.getExtension, this);
       this.compileCoffeeScript = __bind(this.compileCoffeeScript, this);
       this.saveFile = __bind(this.saveFile, this);
       this.addOpenHandler = __bind(this.addOpenHandler, this);
@@ -69,10 +68,10 @@
 
 
     CoffeeScriptCompiler.prototype.compileCoffeeScriptAndSave = function() {
-      var compiledContent, content, editorPath, editorSession, exception, ext, fileName;
-      editorPath = this.codiad.active.getPath();
-      ext = this.getExtension(editorPath);
-      if (ext === 'coffee') {
+      var compiledContent, content, currentFile, editorSession, exception, ext, fileName;
+      currentFile = this.codiad.active.getPath();
+      ext = this.codiad.filemanager.getExtension(currentFile);
+      if (ext.toLowerCase() === 'coffee') {
         content = this.codiad.editor.getContent();
         try {
           compiledContent = this.compileCoffeeScript(content);
@@ -80,7 +79,7 @@
           exception = _error;
           this.codiad.message.error('CoffeeScript compilation failed: ' + exception);
           if (exception.location) {
-            editorSession = this.codiad.active.sessions[codiad.active.getPath()];
+            editorSession = this.codiad.active.sessions[currentFile];
             editorSession.setAnnotations([
               {
                 row: exception.location.first_line,
@@ -92,7 +91,7 @@
           }
         }
         codiad.message.success('CoffeeScript compiled successfully.');
-        fileName = this.getFileNameWithoutExtension(editorPath) + "js";
+        fileName = this.getFileNameWithoutExtension(currentFile) + "js";
         return this.saveFile(fileName, compiledContent);
       }
     };
@@ -155,15 +154,6 @@
         exception = _error;
         throw exception;
       }
-    };
-
-    /*
-    		Get extension of file
-    */
-
-
-    CoffeeScriptCompiler.prototype.getExtension = function(filepath) {
-      return filepath.substring(filepath.lastIndexOf(".") + 1);
     };
 
     /*
