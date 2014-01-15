@@ -6,6 +6,9 @@ CoffeeScript compiler plugin for Codiad-IDE
 This plugin compiles the current coffeescript file on each save and gives you some 
 hints if the file could not be saved due to compilation issues.
 
+Also integrates coffeelint to inform the user about bad pieces of code.
+See http://www.coffeelint.org/ for details.
+
 Installation
 ============
 
