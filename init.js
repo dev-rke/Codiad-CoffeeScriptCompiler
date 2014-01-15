@@ -1,5 +1,5 @@
 /*
-	Copyright (c) 2013, RKE
+	Copyright (c) 2013 - 2014, RKE
 */
 
 
@@ -62,6 +62,7 @@
             return _this.compileCoffeeScriptAndSave();
           }
         });
+        _this.lintEvent = setTimeout(_this.coffeeLint, 3000);
         return _this.codiad.editor.getActive().getSession().on('change', function(e) {
           clearTimeout(_this.lintEvent);
           return _this.lintEvent = setTimeout(_this.coffeeLint, 3000);
@@ -103,29 +104,28 @@
               "level": "ignore"
             }
           });
-          console.log(errors);
-          if (errors) {
-            currentFile = this.codiad.active.getPath();
-            editorSession = this.codiad.active.sessions[currentFile];
-            errorList = (function() {
-              var _i, _len, _results;
-              _results = [];
-              for (_i = 0, _len = errors.length; _i < _len; _i++) {
-                error = errors[_i];
-                _results.push({
-                  row: error.lineNumber - 1,
-                  column: 1,
-                  text: error.message,
-                  type: "warning"
-                });
-              }
-              return _results;
-            })();
-            return editorSession.setAnnotations(errorList);
-          }
         } catch (_error) {
           exception = _error;
-          return console.log(exception.toString());
+          this.codiad.message.error('CoffeeScript linting failed: ' + exception);
+        }
+        if (errors) {
+          currentFile = this.codiad.active.getPath();
+          editorSession = this.codiad.active.sessions[currentFile];
+          errorList = (function() {
+            var _i, _len, _results;
+            _results = [];
+            for (_i = 0, _len = errors.length; _i < _len; _i++) {
+              error = errors[_i];
+              _results.push({
+                row: error.lineNumber - 1,
+                column: 1,
+                text: error.message,
+                type: "warning"
+              });
+            }
+            return _results;
+          })();
+          return editorSession.setAnnotations(errorList);
         }
       }
     };
@@ -159,7 +159,7 @@
             ]);
           }
         }
-        codiad.message.success('CoffeeScript compiled successfully.');
+        this.codiad.message.success('CoffeeScript compiled successfully.');
         fileName = this.getFileNameWithoutExtension(currentFile) + "js";
         return this.saveFile(fileName, compiledContent);
       }

@@ -1,5 +1,5 @@
 ###
-	Copyright (c) 2013, RKE
+	Copyright (c) 2013 - 2014, RKE
 ###
 
 class codiad.CoffeeScriptCompiler
@@ -44,6 +44,7 @@ class codiad.CoffeeScriptCompiler
 					@compileCoffeeScriptAndSave()
 			)
 			
+			@lintEvent = setTimeout @coffeeLint, 3000
 			@codiad.editor.getActive().getSession().on 'change', (e) =>
 				clearTimeout @lintEvent
 				@lintEvent = setTimeout @coffeeLint, 3000
@@ -74,25 +75,25 @@ class codiad.CoffeeScriptCompiler
 					async: false
 				)
 			try
+				# ignore indentation and tab indentation errors
 				errors = coffeelint.lint(content,
 					"no_tabs":
 				        "level": "ignore"
 					"indentation":
 						"level": "ignore"
 				)
-				console.log errors
-				if errors
-					currentFile = @codiad.active.getPath()
-					editorSession = @codiad.active.sessions[currentFile]
-					
-					errorList = for error in errors
-						row:    error.lineNumber - 1
-						column: 1
-						text:   error.message
-						type:   "warning"
-					editorSession.setAnnotations(errorList)
 			catch exception
-				console.log exception.toString()
+				@codiad.message.error 'CoffeeScript linting failed: ' + exception
+			if errors
+				currentFile = @codiad.active.getPath()
+				editorSession = @codiad.active.sessions[currentFile]
+				
+				errorList = for error in errors
+					row:    error.lineNumber - 1
+					column: 1
+					text:   error.message
+					type:   "warning"
+				editorSession.setAnnotations(errorList)
 	
 		
 	###
@@ -118,7 +119,7 @@ class codiad.CoffeeScriptCompiler
 						type:   "error"
 					])
 			#console.log(compiledContent);
-			codiad.message.success 'CoffeeScript compiled successfully.'
+			@codiad.message.success 'CoffeeScript compiled successfully.'
 			fileName = @getFileNameWithoutExtension(currentFile) + "js"
 			@saveFile fileName, compiledContent
 		
