@@ -3,11 +3,14 @@ Codiad-CoffeeScriptCompiler
 
 CoffeeScript compiler plugin for Codiad-IDE
 
-This plugin compiles the current coffeescript file on each save and gives you some 
+This plugin compiles the current CoffeeScript file on each save and gives you some 
 hints if the file could not be saved due to compilation issues.
+See http://coffeescript.org/ for the CoffeeScript compiler.
 
 Also integrates coffeelint to inform the user about bad pieces of code.
-See http://www.coffeelint.org/ for details.
+See http://www.coffeelint.org/ for details of coffeelint.
+
+Compilation and Linting is completely done in the browser, so there are no further dependencies.
 
 Installation
 ============
@@ -18,6 +21,6 @@ Installation
 Update 2014/01/12:
 ==================
 
-I just translated the developed javascript code to coffeescript.
-We are talking about a coffeescript compiler integration here, 
-so it's useful to provide the sourcecode of this plugin also written in coffeescript. ;-)
+I just translated the developed javascript code to CoffeeScript.
+We are talking about a CoffeeScript compiler integration here, 
+so it's useful to provide the sourcecode of this plugin also written in CoffeeScript. ;-)
