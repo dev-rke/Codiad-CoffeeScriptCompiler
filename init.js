@@ -17,6 +17,7 @@
       this.compileCoffeeScript = __bind(this.compileCoffeeScript, this);
       this.saveFile = __bind(this.saveFile, this);
       this.compileCoffeeScriptAndSave = __bind(this.compileCoffeeScriptAndSave, this);
+      this.coffeeLint = __bind(this.coffeeLint, this);
       this.addOpenHandler = __bind(this.addOpenHandler, this);
       this.addSaveHandler = __bind(this.addSaveHandler, this);
       this.codiad = global.codiad;
@@ -25,6 +26,7 @@
       this.path = this.scripts[this.scripts.length - 1].src.split('?')[0];
       this.curpath = this.path.split('/').slice(0, -1).join('/') + '/';
       this.addSaveHandler();
+      this.lintEvent = null;
       this.addOpenHandler();
     }
 
@@ -50,7 +52,7 @@
       return amplify.subscribe('active.onOpen', function() {
         var manager;
         manager = _this.codiad.editor.getActive().commands;
-        return manager.addCommand({
+        manager.addCommand({
           name: "Compile CoffeeScript",
           bindKey: {
             win: "Ctrl-Alt-C",
@@ -60,11 +62,77 @@
             return _this.compileCoffeeScriptAndSave();
           }
         });
+        return _this.codiad.editor.getActive().getSession().on('change', function(e) {
+          clearTimeout(_this.lintEvent);
+          return _this.lintEvent = setTimeout(_this.coffeeLint, 3000);
+        });
       });
     };
 
     /*
-    		compiles CoffeeScript and saves it to the same name with a different file extension
+    		lints coffeescript
+    */
+
+
+    CoffeeScriptCompiler.prototype.coffeeLint = function() {
+      var content, currentFile, editorSession, error, errorList, errors, exception, ext;
+      currentFile = this.codiad.active.getPath();
+      ext = this.codiad.filemanager.getExtension(currentFile);
+      if (ext.toLowerCase() === 'coffee') {
+        content = this.codiad.editor.getContent();
+        if (typeof window.CoffeeScript === 'undefined') {
+          this.$.ajax({
+            url: this.curpath + "coffee-script.js",
+            dataType: "script",
+            async: false
+          });
+        }
+        if (typeof window.coffeelint === 'undefined') {
+          this.$.ajax({
+            url: this.curpath + "coffeelint.js",
+            dataType: "script",
+            async: false
+          });
+        }
+        try {
+          errors = coffeelint.lint(content, {
+            "no_tabs": {
+              "level": "ignore"
+            },
+            "indentation": {
+              "level": "ignore"
+            }
+          });
+          console.log(errors);
+          if (errors) {
+            currentFile = this.codiad.active.getPath();
+            editorSession = this.codiad.active.sessions[currentFile];
+            errorList = (function() {
+              var _i, _len, _results;
+              _results = [];
+              for (_i = 0, _len = errors.length; _i < _len; _i++) {
+                error = errors[_i];
+                _results.push({
+                  row: error.lineNumber - 1,
+                  column: 1,
+                  text: error.message,
+                  type: "warning"
+                });
+              }
+              return _results;
+            })();
+            return editorSession.setAnnotations(errorList);
+          }
+        } catch (_error) {
+          exception = _error;
+          return console.log(exception.toString());
+        }
+      }
+    };
+
+    /*
+    		compiles CoffeeScript and saves it to the same name
+    		with a different file extension
     */
 
 
@@ -97,7 +165,7 @@
       }
     };
 
-    /*	
+    /*
     		saves a file, creates one if it does not exist
     */
 
@@ -107,7 +175,7 @@
         _this = this;
       baseDir = this.getBaseDir(fileName);
       if (!this.codiad.filemanager.getType(fileName)) {
-        $.ajax({
+        this.$.ajax({
           url: this.codiad.filemanager.controller + '?action=create&path=' + fileName + '&type=file',
           success: function(data) {
             var createResponse;
@@ -143,7 +211,7 @@
     CoffeeScriptCompiler.prototype.compileCoffeeScript = function(content) {
       var exception;
       if (typeof window.CoffeeScript === 'undefined') {
-        $.ajax({
+        this.$.ajax({
           url: this.curpath + "coffee-script.js",
           dataType: "script",
           async: false

@@ -15,6 +15,8 @@ class codiad.CoffeeScriptCompiler
 		@curpath = @path.split('/').slice(0, -1).join('/') + '/'
 		
 		@addSaveHandler()
+		
+		@lintEvent = null
 		@addOpenHandler()
 		
 	
@@ -35,17 +37,67 @@ class codiad.CoffeeScriptCompiler
 			manager = @codiad.editor.getActive().commands
 			manager.addCommand(
 				name: "Compile CoffeeScript"
-				bindKey: 
+				bindKey:
 					win: "Ctrl-Alt-C"
 					mac: "Command-Alt-C"
 				exec: =>
 					@compileCoffeeScriptAndSave()
 			)
+			
+			@codiad.editor.getActive().getSession().on 'change', (e) =>
+				clearTimeout @lintEvent
+				@lintEvent = setTimeout @coffeeLint, 3000
 		)
+	
+	
+	###
+		lints coffeescript
+	###
+	coffeeLint: =>
+		currentFile = @codiad.active.getPath()
+		ext = @codiad.filemanager.getExtension(currentFile)
+		if ext.toLowerCase() is 'coffee'
+			content = @codiad.editor.getContent()
 		
+			# CoffeeScript Preload Helper
+			if typeof(window.CoffeeScript) is 'undefined'
+				@$.ajax(
+					url: @curpath + "coffee-script.js"
+					dataType: "script"
+					async: false
+				)
+			# CoffeeLint Preload helper
+			if typeof(window.coffeelint) is 'undefined'
+				@$.ajax(
+					url: @curpath + "coffeelint.js"
+					dataType: "script"
+					async: false
+				)
+			try
+				errors = coffeelint.lint(content,
+					"no_tabs":
+				        "level": "ignore"
+					"indentation":
+						"level": "ignore"
+				)
+				console.log errors
+				if errors
+					currentFile = @codiad.active.getPath()
+					editorSession = @codiad.active.sessions[currentFile]
+					
+					errorList = for error in errors
+						row:    error.lineNumber - 1
+						column: 1
+						text:   error.message
+						type:   "warning"
+					editorSession.setAnnotations(errorList)
+			catch exception
+				console.log exception.toString()
+	
 		
 	###
-		compiles CoffeeScript and saves it to the same name with a different file extension
+		compiles CoffeeScript and saves it to the same name
+		with a different file extension
 	###
 	compileCoffeeScriptAndSave: =>
 		currentFile = @codiad.active.getPath()
@@ -69,9 +121,9 @@ class codiad.CoffeeScriptCompiler
 			codiad.message.success 'CoffeeScript compiled successfully.'
 			fileName = @getFileNameWithoutExtension(currentFile) + "js"
 			@saveFile fileName, compiledContent
+		
 	
-	
-	###	
+	###
 		saves a file, creates one if it does not exist
 	###
 	saveFile: (fileName, fileContent) =>
@@ -80,8 +132,9 @@ class codiad.CoffeeScriptCompiler
 		
 		# create new node for file save if file does not exist, do it not async
 		if not @codiad.filemanager.getType fileName
-			$.ajax(
-				url: @codiad.filemanager.controller + '?action=create&path=' + fileName + '&type=file'
+			@$.ajax(
+				url: @codiad.filemanager.controller + '?action=create&path=' +
+					 fileName + '&type=file'
 				success: (data) =>
 					createResponse = @codiad.jsend.parse data
 					if createResponse is not 'error'
@@ -112,7 +165,7 @@ class codiad.CoffeeScriptCompiler
 	compileCoffeeScript: (content) =>
 		# CoffeeScript Preload helper
 		if typeof(window.CoffeeScript) is 'undefined'
-			$.ajax(
+			@$.ajax(
 				url: @curpath + "coffee-script.js"
 				dataType: "script"
 				async: false
