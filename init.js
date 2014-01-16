@@ -76,7 +76,7 @@
 
 
     CoffeeScriptCompiler.prototype.coffeeLint = function() {
-      var content, currentFile, editorSession, error, errorList, errors, exception, ext;
+      var content, currentFile, editor, error, errorList, errors, exception, ext;
       currentFile = this.codiad.active.getPath();
       ext = this.codiad.filemanager.getExtension(currentFile);
       if (ext.toLowerCase() === 'coffee') {
@@ -109,8 +109,7 @@
           this.codiad.message.error('CoffeeScript linting failed: ' + exception);
         }
         if (errors) {
-          currentFile = this.codiad.active.getPath();
-          editorSession = this.codiad.active.sessions[currentFile];
+          editor = this.codiad.editor.getActive().getSession();
           errorList = (function() {
             var _i, _len, _results;
             _results = [];
@@ -125,7 +124,7 @@
             }
             return _results;
           })();
-          return editorSession.setAnnotations(errorList);
+          return editor.setAnnotations(errorList.concat(editor.getAnnotations()));
         }
       }
     };

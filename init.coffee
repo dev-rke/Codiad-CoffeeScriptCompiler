@@ -85,15 +85,14 @@ class codiad.CoffeeScriptCompiler
 			catch exception
 				@codiad.message.error 'CoffeeScript linting failed: ' + exception
 			if errors
-				currentFile = @codiad.active.getPath()
-				editorSession = @codiad.active.sessions[currentFile]
+				editor = @codiad.editor.getActive().getSession()
 				
 				errorList = for error in errors
 					row:    error.lineNumber - 1
 					column: 1
 					text:   error.message
 					type:   "warning"
-				editorSession.setAnnotations(errorList)
+				editor.setAnnotations(errorList.concat editor.getAnnotations())
 	
 		
 	###
