@@ -8,7 +8,7 @@
 
   codiad.CoffeeScriptCompiler = (function() {
     /*
-    		initialization
+    		basic plugin environment initialization
     */
 
     function CoffeeScriptCompiler(global, jQuery) {
@@ -20,16 +20,29 @@
       this.coffeeLint = __bind(this.coffeeLint, this);
       this.addOpenHandler = __bind(this.addOpenHandler, this);
       this.addSaveHandler = __bind(this.addSaveHandler, this);
+      this.init = __bind(this.init, this);
+      var _this = this;
       this.codiad = global.codiad;
       this.amplify = global.amplify;
-      this.$ = jQuery;
+      this.jQuery = jQuery;
       this.scripts = document.getElementsByTagName('script');
       this.path = this.scripts[this.scripts.length - 1].src.split('?')[0];
       this.curpath = this.path.split('/').slice(0, -1).join('/') + '/';
+      this.jQuery(function() {
+        return _this.init();
+      });
+    }
+
+    /*
+    		main plugin initialization
+    */
+
+
+    CoffeeScriptCompiler.prototype.init = function() {
       this.addSaveHandler();
       this.lintEvent = null;
-      this.addOpenHandler();
-    }
+      return this.addOpenHandler();
+    };
 
     /*
     		Add new compiler procedure to save handler
@@ -83,14 +96,14 @@
       if (ext.toLowerCase() === 'coffee') {
         content = this.codiad.editor.getContent();
         if (typeof window.CoffeeScript === 'undefined') {
-          this.$.ajax({
+          this.jQuery.ajax({
             url: this.curpath + "coffee-script.js",
             dataType: "script",
             async: false
           });
         }
         if (typeof window.coffeelint === 'undefined') {
-          this.$.ajax({
+          this.jQuery.ajax({
             url: this.curpath + "coffeelint.js",
             dataType: "script",
             async: false
@@ -187,7 +200,7 @@
         _this = this;
       baseDir = this.getBaseDir(fileName);
       if (!this.codiad.filemanager.getType(fileName)) {
-        this.$.ajax({
+        this.jQuery.ajax({
           url: this.codiad.filemanager.controller + '?action=create&path=' + fileName + '&type=file',
           success: function(data) {
             var createResponse;
@@ -223,7 +236,7 @@
     CoffeeScriptCompiler.prototype.compileCoffeeScript = function(content, options) {
       var exception;
       if (typeof window.CoffeeScript === 'undefined') {
-        this.$.ajax({
+        this.jQuery.ajax({
           url: this.curpath + "coffee-script.js",
           dataType: "script",
           async: false

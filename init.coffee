@@ -5,21 +5,29 @@
 class codiad.CoffeeScriptCompiler
 	
 	###
-		initialization
+		basic plugin environment initialization
 	###
 	constructor: (global, jQuery) ->
 		@codiad = global.codiad
 		@amplify = global.amplify
-		@$ = jQuery
+		@jQuery = jQuery
+		
 		@scripts = document.getElementsByTagName('script')
 		@path = @scripts[@scripts.length - 1].src.split('?')[0]
 		@curpath = @path.split('/').slice(0, -1).join('/') + '/'
 		
+		# wait until dom is loaded
+		@jQuery =>
+            @init()
+	
+	###
+		main plugin initialization
+	###
+	init: =>
 		@addSaveHandler()
-		
 		@lintEvent = null
 		@addOpenHandler()
-		
+	
 	
 	###
 		Add new compiler procedure to save handler
@@ -63,14 +71,14 @@ class codiad.CoffeeScriptCompiler
 		
 			# CoffeeScript Preload Helper
 			if typeof(window.CoffeeScript) is 'undefined'
-				@$.ajax(
+				@jQuery.ajax(
 					url: @curpath + "coffee-script.js"
 					dataType: "script"
 					async: false
 				)
 			# CoffeeLint Preload helper
 			if typeof(window.coffeelint) is 'undefined'
-				@$.ajax(
+				@jQuery.ajax(
 					url: @curpath + "coffeelint.js"
 					dataType: "script"
 					async: false
@@ -148,7 +156,7 @@ class codiad.CoffeeScriptCompiler
 		
 		# create new node for file save if file does not exist, do it not async
 		if not @codiad.filemanager.getType fileName
-			@$.ajax(
+			@jQuery.ajax(
 				url: @codiad.filemanager.controller + '?action=create&path=' +
 					 fileName + '&type=file'
 				success: (data) =>
@@ -181,7 +189,7 @@ class codiad.CoffeeScriptCompiler
 	compileCoffeeScript: (content, options) =>
 		# CoffeeScript Preload helper
 		if typeof(window.CoffeeScript) is 'undefined'
-			@$.ajax(
+			@jQuery.ajax(
 				url: @curpath + "coffee-script.js"
 				dataType: "script"
 				async: false
