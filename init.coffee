@@ -24,10 +24,30 @@ class codiad.CoffeeScriptCompiler
 		main plugin initialization
 	###
 	init: =>
+		@preloadLibraries()
 		@addSaveHandler()
 		@lintEvent = null
 		@addOpenHandler()
 	
+	
+	###
+		load coffeescript and coffeelint libraries
+	###
+	preloadLibraries: =>
+		# CoffeeScript Preload Helper
+		if typeof(window.CoffeeScript) is 'undefined'
+			@jQuery.ajax(
+				url: @curpath + "coffee-script.js"
+				dataType: "script"
+				async: false
+			)
+		# CoffeeLint Preload helper
+		if typeof(window.coffeelint) is 'undefined'
+			@jQuery.ajax(
+				url: @curpath + "coffeelint.js"
+				dataType: "script"
+				async: false
+			)
 	
 	###
 		Add new compiler procedure to save handler
@@ -68,21 +88,6 @@ class codiad.CoffeeScriptCompiler
 		ext = @codiad.filemanager.getExtension(currentFile)
 		if ext.toLowerCase() is 'coffee'
 			content = @codiad.editor.getContent()
-		
-			# CoffeeScript Preload Helper
-			if typeof(window.CoffeeScript) is 'undefined'
-				@jQuery.ajax(
-					url: @curpath + "coffee-script.js"
-					dataType: "script"
-					async: false
-				)
-			# CoffeeLint Preload helper
-			if typeof(window.coffeelint) is 'undefined'
-				@jQuery.ajax(
-					url: @curpath + "coffeelint.js"
-					dataType: "script"
-					async: false
-				)
 			try
 				# ignore indentation and tab indentation errors
 				errors = coffeelint.lint(content,

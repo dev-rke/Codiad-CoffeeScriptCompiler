@@ -20,6 +20,7 @@
       this.coffeeLint = __bind(this.coffeeLint, this);
       this.addOpenHandler = __bind(this.addOpenHandler, this);
       this.addSaveHandler = __bind(this.addSaveHandler, this);
+      this.preloadLibraries = __bind(this.preloadLibraries, this);
       this.init = __bind(this.init, this);
       var _this = this;
       this.codiad = global.codiad;
@@ -39,9 +40,32 @@
 
 
     CoffeeScriptCompiler.prototype.init = function() {
+      this.preloadLibraries();
       this.addSaveHandler();
       this.lintEvent = null;
       return this.addOpenHandler();
+    };
+
+    /*
+    		load coffeescript and coffeelint libraries
+    */
+
+
+    CoffeeScriptCompiler.prototype.preloadLibraries = function() {
+      if (typeof window.CoffeeScript === 'undefined') {
+        this.jQuery.ajax({
+          url: this.curpath + "coffee-script.js",
+          dataType: "script",
+          async: false
+        });
+      }
+      if (typeof window.coffeelint === 'undefined') {
+        return this.jQuery.ajax({
+          url: this.curpath + "coffeelint.js",
+          dataType: "script",
+          async: false
+        });
+      }
     };
 
     /*
@@ -95,20 +119,6 @@
       ext = this.codiad.filemanager.getExtension(currentFile);
       if (ext.toLowerCase() === 'coffee') {
         content = this.codiad.editor.getContent();
-        if (typeof window.CoffeeScript === 'undefined') {
-          this.jQuery.ajax({
-            url: this.curpath + "coffee-script.js",
-            dataType: "script",
-            async: false
-          });
-        }
-        if (typeof window.coffeelint === 'undefined') {
-          this.jQuery.ajax({
-            url: this.curpath + "coffeelint.js",
-            dataType: "script",
-            async: false
-          });
-        }
         try {
           errors = coffeelint.lint(content, {
             "no_tabs": {
