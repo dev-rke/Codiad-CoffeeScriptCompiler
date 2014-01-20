@@ -198,7 +198,7 @@
           return _this.codiad.filemanager.rescan(baseDir);
         },
         error: function() {
-          return _this.codiad.message.error('Cannot save compiled CoffeeScript file.');
+          return _this.codiad.message.error('Cannot save file.');
         }
       });
     };

@@ -156,7 +156,7 @@ class codiad.CoffeeScriptCompiler
 				# rescan current folder
 				@codiad.filemanager.rescan baseDir
 			error: =>
-				@codiad.message.error 'Cannot save compiled CoffeeScript file.'
+				@codiad.message.error 'Cannot save file.'
 		)
 	
 	
