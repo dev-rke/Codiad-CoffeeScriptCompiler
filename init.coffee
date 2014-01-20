@@ -9,6 +9,7 @@ class codiad.CoffeeScriptCompiler
 	###
 	constructor: (global, jQuery) ->
 		@codiad = global.codiad
+		@amplify = global.amplify
 		@$ = jQuery
 		@scripts = document.getElementsByTagName('script')
 		@path = @scripts[@scripts.length - 1].src.split('?')[0]
@@ -24,7 +25,7 @@ class codiad.CoffeeScriptCompiler
 		Add new compiler procedure to save handler
 	###
 	addSaveHandler: =>
-		amplify.subscribe('active.onSave', =>
+		@amplify.subscribe('active.onSave', =>
 			@compileCoffeeScriptAndSave()
 		)
 		
@@ -33,7 +34,7 @@ class codiad.CoffeeScriptCompiler
 		Add hotkey binding for manual compiling
 	###
 	addOpenHandler: =>
-		amplify.subscribe('active.onOpen', =>
+		@amplify.subscribe('active.onOpen', =>
 			manager = @codiad.editor.getActive().commands
 			manager.addCommand(
 				name: "Compile CoffeeScript"
@@ -140,7 +141,7 @@ class codiad.CoffeeScriptCompiler
 					if createResponse is not 'error'
 						@codiad.filemanager.createObject path, baseDir, 'file'
 						# Notify listeners.
-						amplify.publish('filemanager.onCreate'
+						@amplify.publish('filemanager.onCreate'
 							createPath: baseDir
 							path:       path
 							shortName:  fileName

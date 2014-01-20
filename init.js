@@ -21,6 +21,7 @@
       this.addOpenHandler = __bind(this.addOpenHandler, this);
       this.addSaveHandler = __bind(this.addSaveHandler, this);
       this.codiad = global.codiad;
+      this.amplify = global.amplify;
       this.$ = jQuery;
       this.scripts = document.getElementsByTagName('script');
       this.path = this.scripts[this.scripts.length - 1].src.split('?')[0];
@@ -37,7 +38,7 @@
 
     CoffeeScriptCompiler.prototype.addSaveHandler = function() {
       var _this = this;
-      return amplify.subscribe('active.onSave', function() {
+      return this.amplify.subscribe('active.onSave', function() {
         return _this.compileCoffeeScriptAndSave();
       });
     };
@@ -49,7 +50,7 @@
 
     CoffeeScriptCompiler.prototype.addOpenHandler = function() {
       var _this = this;
-      return amplify.subscribe('active.onOpen', function() {
+      return this.amplify.subscribe('active.onOpen', function() {
         var manager;
         manager = _this.codiad.editor.getActive().commands;
         manager.addCommand({
@@ -181,7 +182,7 @@
             createResponse = _this.codiad.jsend.parse(data);
             if (createResponse === !'error') {
               _this.codiad.filemanager.createObject(path, baseDir, 'file');
-              return amplify.publish('filemanager.onCreate', {
+              return _this.amplify.publish('filemanager.onCreate', {
                 createPath: baseDir,
                 path: path,
                 shortName: fileName,
