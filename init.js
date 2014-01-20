@@ -137,13 +137,19 @@
 
 
     CoffeeScriptCompiler.prototype.compileCoffeeScriptAndSave = function() {
-      var compiledContent, content, currentFile, editorSession, exception, ext, fileName;
+      var compiledContent, compiledJS, content, currentFile, editorSession, exception, ext, fileName, options, sourceMapFileName;
       currentFile = this.codiad.active.getPath();
       ext = this.codiad.filemanager.getExtension(currentFile);
       if (ext.toLowerCase() === 'coffee') {
         content = this.codiad.editor.getContent();
+        fileName = this.getFileNameWithoutExtension(currentFile);
+        options = {
+          sourceMap: true,
+          sourceFiles: [this.codiad.filemanager.getShortName(currentFile)],
+          generatedFile: this.codiad.filemanager.getShortName(fileName + 'js')
+        };
         try {
-          compiledContent = this.compileCoffeeScript(content);
+          compiledContent = this.compileCoffeeScript(content, options);
         } catch (_error) {
           exception = _error;
           this.codiad.message.error('CoffeeScript compilation failed: ' + exception);
@@ -158,10 +164,16 @@
               }
             ]);
           }
+          return;
         }
         this.codiad.message.success('CoffeeScript compiled successfully.');
-        fileName = this.getFileNameWithoutExtension(currentFile) + "js";
-        return this.saveFile(fileName, compiledContent);
+        compiledJS = compiledContent != null ? compiledContent.js : void 0;
+        if (options.sourceMap === true) {
+          sourceMapFileName = this.codiad.filemanager.getShortName(fileName + "map");
+          compiledJS = ("//# sourceMappingURL=" + sourceMapFileName + "\n") + compiledJS;
+          this.saveFile(fileName + "map", compiledContent != null ? compiledContent.v3SourceMap : void 0);
+        }
+        return this.saveFile(fileName + "js", compiledJS);
       }
     };
 
@@ -208,7 +220,7 @@
     */
 
 
-    CoffeeScriptCompiler.prototype.compileCoffeeScript = function(content) {
+    CoffeeScriptCompiler.prototype.compileCoffeeScript = function(content, options) {
       var exception;
       if (typeof window.CoffeeScript === 'undefined') {
         this.$.ajax({
@@ -218,7 +230,7 @@
         });
       }
       try {
-        return CoffeeScript.compile(content);
+        return CoffeeScript.compile(content, options);
       } catch (_error) {
         exception = _error;
         throw exception;

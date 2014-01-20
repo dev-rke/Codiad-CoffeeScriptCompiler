@@ -105,8 +105,16 @@ class codiad.CoffeeScriptCompiler
 		ext = @codiad.filemanager.getExtension(currentFile)
 		if ext.toLowerCase() is 'coffee'
 			content = @codiad.editor.getContent()
+			
+			fileName = @getFileNameWithoutExtension(currentFile)
+			
+			options =
+				sourceMap: true
+				sourceFiles: [@codiad.filemanager.getShortName currentFile]
+				generatedFile: @codiad.filemanager.getShortName fileName + 'js'
+			
 			try
-				compiledContent = @compileCoffeeScript content
+				compiledContent = @compileCoffeeScript content, options
 			catch exception
 				# show error message and editor annotation
 				@codiad.message.error 'CoffeeScript compilation failed: ' + exception
@@ -118,10 +126,16 @@ class codiad.CoffeeScriptCompiler
 						text:   exception.toString()
 						type:   "error"
 					])
+				return
 			#console.log(compiledContent);
 			@codiad.message.success 'CoffeeScript compiled successfully.'
-			fileName = @getFileNameWithoutExtension(currentFile) + "js"
-			@saveFile fileName, compiledContent
+			
+			compiledJS = compiledContent?.js
+			if options.sourceMap is true
+				sourceMapFileName = @codiad.filemanager.getShortName fileName + "map"
+				compiledJS = "//# sourceMappingURL=#{sourceMapFileName}\n" + compiledJS
+				@saveFile fileName + "map", compiledContent?.v3SourceMap
+			@saveFile fileName + "js",  compiledJS
 		
 	
 	###
@@ -163,7 +177,7 @@ class codiad.CoffeeScriptCompiler
 	###
 		compile CoffeeScript
 	###
-	compileCoffeeScript: (content) =>
+	compileCoffeeScript: (content, options) =>
 		# CoffeeScript Preload helper
 		if typeof(window.CoffeeScript) is 'undefined'
 			@$.ajax(
@@ -172,7 +186,7 @@ class codiad.CoffeeScriptCompiler
 				async: false
 			)
 		try
-			CoffeeScript.compile content
+			CoffeeScript.compile content, options
 		catch exception
 			throw exception
 	
