@@ -136,7 +136,7 @@
     */
 
 
-    CoffeeScriptCompiler.prototype.compileCoffeeScriptAndSave = function() {
+    CoffeeScriptCompiler.prototype.compileCoffeeScriptAndSave = function(generateSourceMap) {
       var compiledContent, compiledJS, content, currentFile, editorSession, exception, ext, fileName, options, sourceMapFileName;
       currentFile = this.codiad.active.getPath();
       ext = this.codiad.filemanager.getExtension(currentFile);
@@ -168,7 +168,7 @@
         }
         this.codiad.message.success('CoffeeScript compiled successfully.');
         compiledJS = compiledContent != null ? compiledContent.js : void 0;
-        if (options.sourceMap === true) {
+        if (generateSourceMap) {
           sourceMapFileName = this.codiad.filemanager.getShortName(fileName + "map");
           compiledJS = ("//# sourceMappingURL=" + sourceMapFileName + "\n") + compiledJS;
           this.saveFile(fileName + "map", compiledContent != null ? compiledContent.v3SourceMap : void 0);

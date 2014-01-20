@@ -100,10 +100,11 @@ class codiad.CoffeeScriptCompiler
 		compiles CoffeeScript and saves it to the same name
 		with a different file extension
 	###
-	compileCoffeeScriptAndSave: =>
+	compileCoffeeScriptAndSave: (generateSourceMap) =>
 		currentFile = @codiad.active.getPath()
 		ext = @codiad.filemanager.getExtension(currentFile)
 		if ext.toLowerCase() is 'coffee'
+		
 			content = @codiad.editor.getContent()
 			
 			fileName = @getFileNameWithoutExtension(currentFile)
@@ -131,7 +132,7 @@ class codiad.CoffeeScriptCompiler
 			@codiad.message.success 'CoffeeScript compiled successfully.'
 			
 			compiledJS = compiledContent?.js
-			if options.sourceMap is true
+			if generateSourceMap
 				sourceMapFileName = @codiad.filemanager.getShortName fileName + "map"
 				compiledJS = "//# sourceMappingURL=#{sourceMapFileName}\n" + compiledJS
 				@saveFile fileName + "map", compiledContent?.v3SourceMap
