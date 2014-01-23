@@ -143,6 +143,9 @@ class codiad.CoffeeScriptCompiler
 			if @settings.enable_header
 				options.header = true
 			
+			if @settings.enable_bare
+				options.bare = true
+			
 			try
 				compiledContent = @compileCoffeeScript content, options
 			catch exception
@@ -269,6 +272,12 @@ class codiad.CoffeeScriptCompiler
 	            	/>
 	            <label for="enable_header">
 	            	Enable CoffeeScript header in compiled file
+	            </label><br />
+	            <input type="checkbox" id="enable_bare"
+	            	#{if @settings.enable_bare then 'checked="checked"' else ''}
+	            	/>
+	            <label for="enable_bare">
+	            	Compile without a top-level function wrapper
 	            </label><br />
 	            <h2 id="coffeelint-headline">CoffeeLint Settings</h2>
 	            <div id="coffeelint-container">

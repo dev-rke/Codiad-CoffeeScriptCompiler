@@ -197,6 +197,9 @@
         if (this.settings.enable_header) {
           options.header = true;
         }
+        if (this.settings.enable_bare) {
+          options.bare = true;
+        }
         try {
           compiledContent = this.compileCoffeeScript(content, options);
         } catch (_error) {
@@ -325,7 +328,7 @@
         }
         return _results;
       }).call(this);
-      html = "<div id=\"coffeescript-settings\">\n	            <h2>CoffeeScript Compiler Settings</h2>\n	            <input type=\"checkbox\" id=\"compile_coffeescript\"\n	            	" + (this.settings.compile_coffeescript ? 'checked="checked"' : '') + "\n	            	/>\n	            <label for=\"compile_coffeescript\">\n	            	Compile CoffeeScript on save\n	            </label><br />\n	            <input type=\"checkbox\" id=\"generate_sourcemap\"\n	            	" + (this.settings.generate_sourcemap ? 'checked="checked"' : '') + "\n	            	/>\n	            <label for=\"generate_sourcemap\">\n	            	Generate SourceMap on save\n	            </label><br />\n	            <input type=\"checkbox\" id=\"enable_header\"\n	            	" + (this.settings.enable_header ? 'checked="checked"' : '') + "\n	            	/>\n	            <label for=\"enable_header\">\n	            	Enable CoffeeScript header in compiled file\n	            </label><br />\n	            <h2 id=\"coffeelint-headline\">CoffeeLint Settings</h2>\n	            <div id=\"coffeelint-container\">\n	        		" + (coffeeLintRules.join('')) + "\n	        	</div>\n	        	<button id=\"modal_close\">Save Settings</button>\n        	</div>";
+      html = "<div id=\"coffeescript-settings\">\n	            <h2>CoffeeScript Compiler Settings</h2>\n	            <input type=\"checkbox\" id=\"compile_coffeescript\"\n	            	" + (this.settings.compile_coffeescript ? 'checked="checked"' : '') + "\n	            	/>\n	            <label for=\"compile_coffeescript\">\n	            	Compile CoffeeScript on save\n	            </label><br />\n	            <input type=\"checkbox\" id=\"generate_sourcemap\"\n	            	" + (this.settings.generate_sourcemap ? 'checked="checked"' : '') + "\n	            	/>\n	            <label for=\"generate_sourcemap\">\n	            	Generate SourceMap on save\n	            </label><br />\n	            <input type=\"checkbox\" id=\"enable_header\"\n	            	" + (this.settings.enable_header ? 'checked="checked"' : '') + "\n	            	/>\n	            <label for=\"enable_header\">\n	            	Enable CoffeeScript header in compiled file\n	            </label><br />\n	            <input type=\"checkbox\" id=\"enable_bare\"\n	            	" + (this.settings.enable_bare ? 'checked="checked"' : '') + "\n	            	/>\n	            <label for=\"enable_bare\">\n	            	Compile without a top-level function wrapper\n	            </label><br />\n	            <h2 id=\"coffeelint-headline\">CoffeeLint Settings</h2>\n	            <div id=\"coffeelint-container\">\n	        		" + (coffeeLintRules.join('')) + "\n	        	</div>\n	        	<button id=\"modal_close\">Save Settings</button>\n        	</div>";
       this.jQuery('#modal-content').append(this.jQuery(html));
       this.jQuery('#modal').show().draggable({
         handle: '#drag-handle'
