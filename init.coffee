@@ -240,9 +240,6 @@ class codiad.CoffeeScriptCompiler
     ###
 	showDialog: =>
 		
-		#coffeeLintRules = for index,rule of coffeelint.RULES
-        #level = 'checked="checked"' if rule.level in ['error', 'warn']
-		
 		coffeeLintRules = for name,value of @settings.coffeelint
 			level = if value then 'checked="checked"' else ''
 			rule = coffeelint.RULES[name].message
