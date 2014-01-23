@@ -78,7 +78,7 @@ class codiad.CoffeeScriptCompiler
 					win: "Ctrl-Alt-C"
 					mac: "Command-Alt-C"
 				exec: =>
-					@compileCoffeeScriptAndSave(true, true)
+					@compileCoffeeScriptAndSave()
 			)
 			
 			@lintEvent = setTimeout @coffeeLint, 3000
@@ -105,7 +105,7 @@ class codiad.CoffeeScriptCompiler
 				# set indentation size to editor tab size
 				lintsettings.indentation.value = 1 if not @codiad.editor.settings.softTabs
 				
-				# ignore indentation and tab indentation errors
+				# lint coffeescript using settings
 				errors = coffeelint.lint content, lintsettings
 			catch exception
 				@codiad.message.error 'CoffeeScript linting failed: ' + exception
@@ -124,7 +124,7 @@ class codiad.CoffeeScriptCompiler
 		compiles CoffeeScript and saves it to the same name
 		with a different file extension
 	###
-	compileCoffeeScriptAndSave: (generateSourceMap, enableHeader) =>
+	compileCoffeeScriptAndSave: =>
 		return unless @settings.compile_coffeescript
 		
 		currentFile = @codiad.active.getPath()
@@ -312,6 +312,7 @@ class codiad.CoffeeScriptCompiler
 					@codiad.message.error json.message
 				else
 					@codiad.message.success json.message
+			@coffeeLint()
 		)
 		
 		

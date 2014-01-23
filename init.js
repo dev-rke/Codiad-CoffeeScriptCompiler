@@ -112,7 +112,7 @@
             mac: "Command-Alt-C"
           },
           exec: function() {
-            return _this.compileCoffeeScriptAndSave(true, true);
+            return _this.compileCoffeeScriptAndSave();
           }
         });
         _this.lintEvent = setTimeout(_this.coffeeLint, 3000);
@@ -179,7 +179,7 @@
     */
 
 
-    CoffeeScriptCompiler.prototype.compileCoffeeScriptAndSave = function(generateSourceMap, enableHeader) {
+    CoffeeScriptCompiler.prototype.compileCoffeeScriptAndSave = function() {
       var compiledContent, compiledJS, content, currentFile, editorSession, exception, ext, fileName, options, sourceMapFileName;
       if (!this.settings.compile_coffeescript) {
         return;
@@ -350,7 +350,7 @@
         _this.codiad.modal.unload();
         _this.jQuery('#modal-content').off();
         _this.settings = settings;
-        return _this.jQuery.post(_this.curpath + "controller.php?action=save", {
+        _this.jQuery.post(_this.curpath + "controller.php?action=save", {
           settings: JSON.stringify(settings)
         }, function(data) {
           var json;
@@ -361,6 +361,7 @@
             return _this.codiad.message.success(json.message);
           }
         });
+        return _this.coffeeLint();
       });
     };
 
