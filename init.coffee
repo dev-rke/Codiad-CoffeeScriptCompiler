@@ -4,6 +4,9 @@
 
 class codiad.CoffeeScriptCompiler
 	
+	@instance = null
+	settings = null
+	
 	###
 		basic plugin environment initialization
 	###
@@ -16,15 +19,17 @@ class codiad.CoffeeScriptCompiler
 		@path = @scripts[@scripts.length - 1].src.split('?')[0]
 		@curpath = @path.split('/').slice(0, -1).join('/') + '/'
 		
+		CoffeeScriptCompiler.instance = @
+		
 		# wait until dom is loaded
 		@jQuery =>
-            @init()
+			@init()
 	
 	###
 		main plugin initialization
 	###
 	init: =>
-		@preloadLibraries()
+		@preloadLibrariesAndSettings()
 		@addSaveHandler()
 		@lintEvent = null
 		@addOpenHandler()
@@ -33,7 +38,7 @@ class codiad.CoffeeScriptCompiler
 	###
 		load coffeescript and coffeelint libraries
 	###
-	preloadLibraries: =>
+	preloadLibrariesAndSettings: =>
 		# CoffeeScript Preload Helper
 		if typeof(window.CoffeeScript) is 'undefined'
 			@jQuery.ajax(
@@ -48,6 +53,9 @@ class codiad.CoffeeScriptCompiler
 				dataType: "script"
 				async: false
 			)
+		# load settings
+		@jQuery.getJSON @curpath+"controller.php?action=load", (json) =>
+			@settings = json
 	
 	###
 		Add new compiler procedure to save handler
@@ -70,7 +78,7 @@ class codiad.CoffeeScriptCompiler
 					win: "Ctrl-Alt-C"
 					mac: "Command-Alt-C"
 				exec: =>
-					@compileCoffeeScriptAndSave()
+					@compileCoffeeScriptAndSave(true, true)
 			)
 			
 			@lintEvent = setTimeout @coffeeLint, 3000
@@ -89,13 +97,16 @@ class codiad.CoffeeScriptCompiler
 		if ext.toLowerCase() is 'coffee'
 			content = @codiad.editor.getContent()
 			try
+				lintsettings = {}
+				for setting,value of @settings.coffeelint
+					status = if value then 'error' else 'ignore'
+					lintsettings[setting] = "level": status
+					
+				# set indentation size to editor tab size
+				lintsettings.indentation.value = 1 if not @codiad.editor.settings.softTabs
+				
 				# ignore indentation and tab indentation errors
-				errors = coffeelint.lint(content,
-					"no_tabs":
-				        "level": "ignore"
-					"indentation":
-						"level": "ignore"
-				)
+				errors = coffeelint.lint content, lintsettings
 			catch exception
 				@codiad.message.error 'CoffeeScript linting failed: ' + exception
 			if errors
@@ -113,7 +124,9 @@ class codiad.CoffeeScriptCompiler
 		compiles CoffeeScript and saves it to the same name
 		with a different file extension
 	###
-	compileCoffeeScriptAndSave: (generateSourceMap) =>
+	compileCoffeeScriptAndSave: (generateSourceMap, enableHeader) =>
+		return unless @settings.compile_coffeescript
+		
 		currentFile = @codiad.active.getPath()
 		ext = @codiad.filemanager.getExtension(currentFile)
 		if ext.toLowerCase() is 'coffee'
@@ -126,6 +139,9 @@ class codiad.CoffeeScriptCompiler
 				sourceMap: true
 				sourceFiles: [@codiad.filemanager.getShortName currentFile]
 				generatedFile: @codiad.filemanager.getShortName fileName + 'js'
+			
+			if @settings.enable_header
+				options.header = true
 			
 			try
 				compiledContent = @compileCoffeeScript content, options
@@ -145,7 +161,7 @@ class codiad.CoffeeScriptCompiler
 			@codiad.message.success 'CoffeeScript compiled successfully.'
 			
 			compiledJS = compiledContent?.js
-			if generateSourceMap
+			if @settings.generate_sourcemap
 				sourceMapFileName = @codiad.filemanager.getShortName fileName + "map"
 				compiledJS = "//# sourceMappingURL=#{sourceMapFileName}\n" + compiledJS
 				@saveFile fileName + "map", compiledContent?.v3SourceMap
@@ -217,6 +233,88 @@ class codiad.CoffeeScriptCompiler
 	###
 	getFileNameWithoutExtension: (filepath) =>
 		filepath.substr 0, filepath.indexOf(".") + 1
+	
+	
+	###
+        shows settings dialog
+    ###
+	showDialog: =>
+		
+		#coffeeLintRules = for index,rule of coffeelint.RULES
+        #level = 'checked="checked"' if rule.level in ['error', 'warn']
+		
+		coffeeLintRules = for name,value of @settings.coffeelint
+			level = if value then 'checked="checked"' else ''
+			rule = coffeelint.RULES[name].message
+			title = coffeelint.RULES[name].description.replace /<[^>]+>/gi, ""
+			"""
+			    <input type="checkbox" id="#{name}" #{level} />
+				<label for="#{name}"  title="#{title}">#{rule}</label><br />
+			"""
+        
+		html = """
+			<div id="coffeescript-settings">
+	            <h2>CoffeeScript Compiler Settings</h2>
+	            <input type="checkbox" id="compile_coffeescript"
+	            	#{if @settings.compile_coffeescript then 'checked="checked"' else ''}
+	            	/>
+	            <label for="compile_coffeescript">
+	            	Compile CoffeeScript on save
+	            </label><br />
+	            <input type="checkbox" id="generate_sourcemap"
+	            	#{if @settings.generate_sourcemap then 'checked="checked"' else ''}
+	            	/>
+	            <label for="generate_sourcemap">
+	            	Generate SourceMap on save
+	            </label><br />
+	            <input type="checkbox" id="enable_header"
+	            	#{if @settings.enable_header then 'checked="checked"' else ''}
+	            	/>
+	            <label for="enable_header">
+	            	Enable CoffeeScript header in compiled file
+	            </label><br />
+	            <h2 id="coffeelint-headline">CoffeeLint Settings</h2>
+	            <div id="coffeelint-container">
+	        		#{coffeeLintRules.join('')}
+	        	</div>
+	        	<button id="modal_close">Save Settings</button>
+        	</div>
+		"""
+        
+		@jQuery('#modal-content').append @jQuery html
+		
+		@jQuery('#modal').show().draggable handle: '#drag-handle'
+		
+		settings = @settings
+		
+		@jQuery('#modal-content').on('click', 'input', (target) =>
+			name = $(target.currentTarget).attr 'id'
+			isActive = $(target.currentTarget).prop 'checked'
+			if name of settings
+				settings[name] = isActive
+			if name of settings.coffeelint
+				settings.coffeelint[name] = isActive
+			return true
+		)
+		@jQuery('#modal_close').on('click', =>
+			@codiad.modal.unload()
+			@jQuery('#modal-content').off()
+			@settings = settings
+			@jQuery.post @curpath+"controller.php?action=save", settings: JSON.stringify(settings), (data) =>
+				json = JSON.parse data
+				if json.status is "error"
+					@codiad.message.error json.message
+				else
+					@codiad.message.success json.message
+		)
+		
+		
+		
+	###
+        Static wrapper to call showDialog outside of the object
+    ###
+	@showDialogWrapper: =>
+		@instance.showDialog()
 
 
 new codiad.CoffeeScriptCompiler(this, jQuery)

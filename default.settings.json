@@ -1,0 +1,31 @@
+{
+	"compile_coffeescript": true,
+	"generate_sourcemap": true,
+	"enable_header": true,
+	"coffeelint": {
+	    "arrow_spacing": false,
+	    "no_tabs": false,
+	    "no_trailing_whitespace": true,
+	    "max_line_length": true,
+	    "line_endings": false,
+	    "no_trailing_semicolons": true,
+	    "indentation": true,
+	    "camel_case_classes": true,
+	    "colon_assignment_spacing": false,
+	    "no_implicit_braces": false,
+	    "no_plusplus": false,
+	    "no_throwing_strings": true,
+	    "no_backticks": true,
+	    "no_implicit_parens": false,
+	    "no_empty_param_list": false,
+	    "no_stand_alone_at": false,
+	    "space_operators": false,
+	    "duplicate_key": true,
+	    "empty_constructor_needs_parens": false,
+	    "cyclomatic_complexity": false,
+	    "newlines_after_classes": false,
+	    "no_unnecessary_fat_arrows": true,
+	    "missing_fat_arrows": false,
+	    "non_empty_constructor_needs_parens": false
+	}
+}

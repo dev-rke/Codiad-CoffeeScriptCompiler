@@ -1,0 +1,21 @@
+#coffeescript-settings h2 {
+    font-size: 1em;
+}
+
+#coffeescript-settings input {
+    display: inline-block;
+}
+
+#coffeescript-settings label {
+    display: inline-block;
+    font-size: 0.85em;
+}
+
+#coffeescript-settings #coffeelint-headline {
+    margin-top: 30px;
+}
+
+#coffeescript-settings #coffeelint-container {
+	height: 400px;
+	overflow-y: scroll;
+}

@@ -18,6 +18,13 @@ Installation
 	Download the zip file and extract it to your plugins folder
 
 
+Update 2014/01/23:
+==================
+
+Integrated a settings dialog to edit settings.
+Enabled SourceMaps by default.
+Integrated CoffeeScript header to generated source files
+
 Update 2014/01/12:
 ==================
 
