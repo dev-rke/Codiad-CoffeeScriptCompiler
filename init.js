@@ -181,7 +181,7 @@
 
     CoffeeScriptCompiler.prototype.compileCoffeeScriptAndSave = function() {
       var compiledContent, compiledJS, content, currentFile, editorSession, exception, ext, fileName, options, sourceMapFileName;
-      if (!this.settings.compile_coffeescript) {
+      if (!this.settings.coffeescript.compile_coffeescript) {
         return;
       }
       currentFile = this.codiad.active.getPath();
@@ -194,10 +194,10 @@
           sourceFiles: [this.codiad.filemanager.getShortName(currentFile)],
           generatedFile: this.codiad.filemanager.getShortName(fileName + 'js')
         };
-        if (this.settings.enable_header) {
+        if (this.settings.coffeescript.enable_header) {
           options.header = true;
         }
-        if (this.settings.enable_bare) {
+        if (this.settings.coffeescript.enable_bare) {
           options.bare = true;
         }
         try {
@@ -220,7 +220,7 @@
         }
         this.codiad.message.success('CoffeeScript compiled successfully.');
         compiledJS = compiledContent != null ? compiledContent.js : void 0;
-        if (this.settings.generate_sourcemap) {
+        if (this.settings.coffeescript.generate_sourcemap) {
           sourceMapFileName = this.codiad.filemanager.getShortName(fileName + "map");
           compiledJS = ("//# sourceMappingURL=" + sourceMapFileName + "\n") + compiledJS;
           this.saveFile(fileName + "map", compiledContent != null ? compiledContent.v3SourceMap : void 0);
@@ -313,22 +313,47 @@
 
 
     CoffeeScriptCompiler.prototype.showDialog = function() {
-      var coffeeLintRules, html, level, name, rule, title, value,
+      var coffeeLintRules, coffeeScriptLabels, coffeeScriptRules, generateCheckbox, html, label, name, title, value,
         _this = this;
+      generateCheckbox = function(name, label, enabled, title) {
+        if (enabled == null) {
+          enabled = false;
+        }
+        if (title == null) {
+          title = "";
+        }
+        return "			    <input type=\"checkbox\" id=\"" + name + "\" " + (enabled ? 'checked="checked"' : void 0) + " />\n<label for=\"" + name + "\"  title=\"" + title + "\">" + label + "</label><br />";
+      };
+      coffeeScriptLabels = {
+        'compile_coffeescript': 'Compile CoffeeScript on save',
+        'generate_sourcemap': 'Generate SourceMap on save',
+        'enable_header': 'Enable CoffeeScript header in compiled file',
+        'enable_bare': 'Compile without a top-level function wrapper'
+      };
+      coffeeScriptRules = (function() {
+        var _ref, _results;
+        _ref = this.settings.coffeescript;
+        _results = [];
+        for (name in _ref) {
+          value = _ref[name];
+          label = coffeeScriptLabels[name];
+          _results.push(generateCheckbox(name, label, value));
+        }
+        return _results;
+      }).call(this);
       coffeeLintRules = (function() {
         var _ref, _results;
         _ref = this.settings.coffeelint;
         _results = [];
         for (name in _ref) {
           value = _ref[name];
-          level = value ? 'checked="checked"' : '';
-          rule = coffeelint.RULES[name].message;
+          label = coffeelint.RULES[name].message;
           title = coffeelint.RULES[name].description.replace(/<[^>]+>/gi, "");
-          _results.push("			    <input type=\"checkbox\" id=\"" + name + "\" " + level + " />\n<label for=\"" + name + "\"  title=\"" + title + "\">" + rule + "</label><br />");
+          _results.push(generateCheckbox(name, label, value, title));
         }
         return _results;
       }).call(this);
-      html = "<div id=\"coffeescript-settings\">\n	            <h2>CoffeeScript Compiler Settings</h2>\n	            <input type=\"checkbox\" id=\"compile_coffeescript\"\n	            	" + (this.settings.compile_coffeescript ? 'checked="checked"' : '') + "\n	            	/>\n	            <label for=\"compile_coffeescript\">\n	            	Compile CoffeeScript on save\n	            </label><br />\n	            <input type=\"checkbox\" id=\"generate_sourcemap\"\n	            	" + (this.settings.generate_sourcemap ? 'checked="checked"' : '') + "\n	            	/>\n	            <label for=\"generate_sourcemap\">\n	            	Generate SourceMap on save\n	            </label><br />\n	            <input type=\"checkbox\" id=\"enable_header\"\n	            	" + (this.settings.enable_header ? 'checked="checked"' : '') + "\n	            	/>\n	            <label for=\"enable_header\">\n	            	Enable CoffeeScript header in compiled file\n	            </label><br />\n	            <input type=\"checkbox\" id=\"enable_bare\"\n	            	" + (this.settings.enable_bare ? 'checked="checked"' : '') + "\n	            	/>\n	            <label for=\"enable_bare\">\n	            	Compile without a top-level function wrapper\n	            </label><br />\n	            <h2 id=\"coffeelint-headline\">CoffeeLint Settings</h2>\n	            <div id=\"coffeelint-container\">\n	        		" + (coffeeLintRules.join('')) + "\n	        	</div>\n	        	<button id=\"modal_close\">Save Settings</button>\n        	</div>";
+      html = "<div id=\"coffeescript-settings\">\n	            <h2>CoffeeScript Compiler Settings</h2>\n	            <div id=\"coffeescript-container\">\n	        		" + (coffeeScriptRules.join('')) + "\n	        	</div>\n	            <h2 id=\"coffeelint-headline\">CoffeeLint Settings</h2>\n	            <div id=\"coffeelint-container\">\n	        		" + (coffeeLintRules.join('')) + "\n	        	</div>\n	        	<button id=\"modal_close\">Save Settings</button>\n        	</div>";
       this.jQuery('#modal-content').append(this.jQuery(html));
       this.jQuery('#modal').show().draggable({
         handle: '#drag-handle'
@@ -338,8 +363,8 @@
         var isActive;
         name = $(target.currentTarget).attr('id');
         isActive = $(target.currentTarget).prop('checked');
-        if (name in settings) {
-          settings[name] = isActive;
+        if (name in settings.coffeescript) {
+          settings.coffeescript[name] = isActive;
         }
         if (name in settings.coffeelint) {
           settings.coffeelint[name] = isActive;

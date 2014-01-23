@@ -24,6 +24,7 @@ class codiad.CoffeeScriptCompiler
 		# wait until dom is loaded
 		@jQuery =>
 			@init()
+			
 	
 	###
 		main plugin initialization
@@ -125,7 +126,7 @@ class codiad.CoffeeScriptCompiler
 		with a different file extension
 	###
 	compileCoffeeScriptAndSave: =>
-		return unless @settings.compile_coffeescript
+		return unless @settings.coffeescript.compile_coffeescript
 		
 		currentFile = @codiad.active.getPath()
 		ext = @codiad.filemanager.getExtension(currentFile)
@@ -140,10 +141,10 @@ class codiad.CoffeeScriptCompiler
 				sourceFiles: [@codiad.filemanager.getShortName currentFile]
 				generatedFile: @codiad.filemanager.getShortName fileName + 'js'
 			
-			if @settings.enable_header
+			if @settings.coffeescript.enable_header
 				options.header = true
 			
-			if @settings.enable_bare
+			if @settings.coffeescript.enable_bare
 				options.bare = true
 			
 			try
@@ -164,7 +165,7 @@ class codiad.CoffeeScriptCompiler
 			@codiad.message.success 'CoffeeScript compiled successfully.'
 			
 			compiledJS = compiledContent?.js
-			if @settings.generate_sourcemap
+			if @settings.coffeescript.generate_sourcemap
 				sourceMapFileName = @codiad.filemanager.getShortName fileName + "map"
 				compiledJS = "//# sourceMappingURL=#{sourceMapFileName}\n" + compiledJS
 				@saveFile fileName + "map", compiledContent?.v3SourceMap
@@ -243,42 +244,33 @@ class codiad.CoffeeScriptCompiler
     ###
 	showDialog: =>
 		
+		generateCheckbox = (name, label, enabled = false, title = "") =>
+			"""
+			    <input type="checkbox" id="#{name}" #{'checked="checked"' if enabled} />
+				<label for="#{name}"  title="#{title}">#{label}</label><br />
+			"""
+		
+		coffeeScriptLabels =
+			'compile_coffeescript': 'Compile CoffeeScript on save'
+			'generate_sourcemap': 'Generate SourceMap on save'
+			'enable_header': 'Enable CoffeeScript header in compiled file'
+			'enable_bare': 'Compile without a top-level function wrapper'
+		
+		coffeeScriptRules = for name,value of @settings.coffeescript
+			label = coffeeScriptLabels[name]
+			generateCheckbox name, label, value
+		
 		coffeeLintRules = for name,value of @settings.coffeelint
-			level = if value then 'checked="checked"' else ''
-			rule = coffeelint.RULES[name].message
+			label = coffeelint.RULES[name].message
 			title = coffeelint.RULES[name].description.replace /<[^>]+>/gi, ""
-			"""
-			    <input type="checkbox" id="#{name}" #{level} />
-				<label for="#{name}"  title="#{title}">#{rule}</label><br />
-			"""
+			generateCheckbox name, label, value, title
         
 		html = """
 			<div id="coffeescript-settings">
 	            <h2>CoffeeScript Compiler Settings</h2>
-	            <input type="checkbox" id="compile_coffeescript"
-	            	#{if @settings.compile_coffeescript then 'checked="checked"' else ''}
-	            	/>
-	            <label for="compile_coffeescript">
-	            	Compile CoffeeScript on save
-	            </label><br />
-	            <input type="checkbox" id="generate_sourcemap"
-	            	#{if @settings.generate_sourcemap then 'checked="checked"' else ''}
-	            	/>
-	            <label for="generate_sourcemap">
-	            	Generate SourceMap on save
-	            </label><br />
-	            <input type="checkbox" id="enable_header"
-	            	#{if @settings.enable_header then 'checked="checked"' else ''}
-	            	/>
-	            <label for="enable_header">
-	            	Enable CoffeeScript header in compiled file
-	            </label><br />
-	            <input type="checkbox" id="enable_bare"
-	            	#{if @settings.enable_bare then 'checked="checked"' else ''}
-	            	/>
-	            <label for="enable_bare">
-	            	Compile without a top-level function wrapper
-	            </label><br />
+	            <div id="coffeescript-container">
+	        		#{coffeeScriptRules.join('')}
+	        	</div>
 	            <h2 id="coffeelint-headline">CoffeeLint Settings</h2>
 	            <div id="coffeelint-container">
 	        		#{coffeeLintRules.join('')}
@@ -296,8 +288,8 @@ class codiad.CoffeeScriptCompiler
 		@jQuery('#modal-content').on('click', 'input', (target) =>
 			name = $(target.currentTarget).attr 'id'
 			isActive = $(target.currentTarget).prop 'checked'
-			if name of settings
-				settings[name] = isActive
+			if name of settings.coffeescript
+				settings.coffeescript[name] = isActive
 			if name of settings.coffeelint
 				settings.coffeelint[name] = isActive
 			return true

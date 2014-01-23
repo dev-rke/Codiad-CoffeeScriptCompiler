@@ -1,8 +1,10 @@
 {
-	"compile_coffeescript": true,
-	"generate_sourcemap": true,
-	"enable_header": true,
-	"enable_bare": false,
+	"coffeescript": {
+    	"compile_coffeescript": true,
+    	"generate_sourcemap": true,
+    	"enable_header": true,
+    	"enable_bare": false
+	},
 	"coffeelint": {
 	    "arrow_spacing": false,
 	    "no_tabs": false,
