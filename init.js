@@ -372,13 +372,14 @@
         return true;
       });
       return this.jQuery('#modal_close').on('click', function() {
+        var json;
         _this.codiad.modal.unload();
         _this.jQuery('#modal-content').off();
         _this.settings = settings;
+        json = JSON.stringify(settings);
         _this.jQuery.post(_this.curpath + "controller.php?action=save", {
-          settings: JSON.stringify(settings)
+          settings: json
         }, function(data) {
-          var json;
           json = JSON.parse(data);
           if (json.status === "error") {
             return _this.codiad.message.error(json.message);

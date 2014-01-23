@@ -298,7 +298,8 @@ class codiad.CoffeeScriptCompiler
 			@codiad.modal.unload()
 			@jQuery('#modal-content').off()
 			@settings = settings
-			@jQuery.post @curpath+"controller.php?action=save", settings: JSON.stringify(settings), (data) =>
+			json = JSON.stringify(settings)
+			@jQuery.post @curpath+"controller.php?action=save", settings: json, (data) =>
 				json = JSON.parse data
 				if json.status is "error"
 					@codiad.message.error json.message
