@@ -65,10 +65,11 @@
     CoffeeScriptCompiler.prototype.preloadLibrariesAndSettings = function() {
       var _this = this;
       if (typeof window.CoffeeScript === 'undefined') {
-        this.jQuery.loadScript(this.curpath + "coffee-script.js");
-      }
-      if (typeof window.coffeelint === 'undefined') {
-        this.jQuery.loadScript(this.curpath + "coffeelint.js");
+        this.jQuery.loadScript(this.curpath + "coffee-script.js", function(data, textStatus, jqxhr) {
+          if (textStatus === 'success' && typeof window.coffeelint === 'undefined') {
+            return _this.jQuery.loadScript(_this.curpath + "coffeelint.js");
+          }
+        });
       }
       return this.jQuery.getJSON(this.curpath + "controller.php?action=load", function(json) {
         return _this.settings = json;

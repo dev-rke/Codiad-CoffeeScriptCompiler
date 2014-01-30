@@ -42,11 +42,10 @@ class codiad.CoffeeScriptCompiler
 	preloadLibrariesAndSettings: =>
 		# CoffeeScript Preload Helper
 		if typeof(window.CoffeeScript) is 'undefined'
-			@jQuery.loadScript @curpath + "coffee-script.js"
-			
-		# CoffeeLint Preload helper
-		if typeof(window.coffeelint) is 'undefined'
-			@jQuery.loadScript @curpath + "coffeelint.js"
+			@jQuery.loadScript @curpath + "coffee-script.js", (data, textStatus, jqxhr) =>
+                # CoffeeLint Preload helper, load only if coffeescript was loaded successfully
+		        if textStatus is 'success' and typeof(window.coffeelint) is 'undefined'
+			        @jQuery.loadScript @curpath + "coffeelint.js"
 			
 		# load settings
 		@jQuery.getJSON @curpath+"controller.php?action=load", (json) =>
