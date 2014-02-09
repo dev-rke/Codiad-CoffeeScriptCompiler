@@ -1,7 +1,7 @@
 [
     {
         "author" : "rke",
-        "version": "0.3",
+        "version": "0.5",
         "name" : "Codiad CoffeeScript Compiler",
         "url" : "",
         "rightbar": [{
