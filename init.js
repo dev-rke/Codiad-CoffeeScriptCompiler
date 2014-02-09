@@ -9,11 +9,13 @@
   var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
   codiad.CoffeeScriptCompiler = (function() {
-    var settings;
+    var ignoreSaveEvent, settings;
 
     CoffeeScriptCompiler.instance = null;
 
     settings = null;
+
+    ignoreSaveEvent = false;
 
     /*
     		basic plugin environment initialization
@@ -84,7 +86,9 @@
     CoffeeScriptCompiler.prototype.addSaveHandler = function() {
       var _this = this;
       return this.amplify.subscribe('active.onSave', function() {
-        return _this.compileCoffeeScriptAndSave();
+        if (!_this.ignoreSaveEvent) {
+          return _this.compileCoffeeScriptAndSave();
+        }
       });
     };
 
@@ -140,28 +144,28 @@
           if (!this.codiad.editor.settings.softTabs) {
             lintsettings.indentation.value = 1;
           }
-          errors = coffeelint.lint(content, lintsettings);
+          return errors = coffeelint.lint(content, lintsettings);
         } catch (_error) {
           exception = _error;
           this.codiad.message.error('CoffeeScript linting failed: ' + exception);
-        }
-        if (errors) {
-          editor = this.codiad.editor.getActive().getSession();
-          errorList = (function() {
-            var _i, _len, _results;
-            _results = [];
-            for (_i = 0, _len = errors.length; _i < _len; _i++) {
-              error = errors[_i];
-              _results.push({
-                row: error.lineNumber - 1,
-                column: 1,
-                text: error.message,
-                type: "warning"
-              });
-            }
-            return _results;
-          })();
-          return editor.setAnnotations(errorList.concat(editor.getAnnotations()));
+          if (errors) {
+            editor = this.codiad.editor.getActive().getSession();
+            errorList = (function() {
+              var _i, _len, _results;
+              _results = [];
+              for (_i = 0, _len = errors.length; _i < _len; _i++) {
+                error = errors[_i];
+                _results.push({
+                  row: error.lineNumber - 1,
+                  column: 1,
+                  text: error.message,
+                  type: "warning"
+                });
+              }
+              return _results;
+            })();
+            return editor.setAnnotations(errorList.concat(editor.getAnnotations()));
+          }
         }
       }
     };
@@ -228,8 +232,15 @@
 
 
     CoffeeScriptCompiler.prototype.saveFile = function(fileName, fileContent) {
-      var baseDir,
+      var baseDir, instance,
         _this = this;
+      if (instance = this.codiad.active.sessions[fileName]) {
+        instance.setValue(fileContent);
+        this.ignoreSaveEvent = true;
+        this.codiad.active.save(fileName);
+        this.ignoreSaveEvent = false;
+        return;
+      }
       baseDir = this.getBaseDir(fileName);
       if (!this.codiad.filemanager.getType(fileName)) {
         this.jQuery.ajax({

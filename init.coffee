@@ -6,6 +6,7 @@ class codiad.CoffeeScriptCompiler
 	
 	@instance = null
 	settings = null
+	ignoreSaveEvent = false
 	
 	###
 		basic plugin environment initialization
@@ -56,7 +57,8 @@ class codiad.CoffeeScriptCompiler
 	###
 	addSaveHandler: =>
 		@amplify.subscribe('active.onSave', =>
-			@compileCoffeeScriptAndSave()
+            if not @ignoreSaveEvent
+                @compileCoffeeScriptAndSave()
 		)
 		
 		
@@ -102,16 +104,16 @@ class codiad.CoffeeScriptCompiler
 				# lint coffeescript using settings
 				errors = coffeelint.lint content, lintsettings
 			catch exception
-				@codiad.message.error 'CoffeeScript linting failed: ' + exception
-			if errors
-				editor = @codiad.editor.getActive().getSession()
-				
-				errorList = for error in errors
-					row:    error.lineNumber - 1
-					column: 1
-					text:   error.message
-					type:   "warning"
-				editor.setAnnotations(errorList.concat editor.getAnnotations())
+                @codiad.message.error 'CoffeeScript linting failed: ' + exception
+                if errors
+                    editor = @codiad.editor.getActive().getSession()
+                    
+                    errorList = for error in errors
+                        row:    error.lineNumber - 1
+                        column: 1
+                        text:   error.message
+                        type:   "warning"
+                    editor.setAnnotations(errorList.concat editor.getAnnotations())
 	
 		
 	###
@@ -169,6 +171,15 @@ class codiad.CoffeeScriptCompiler
 		saves a file, creates one if it does not exist
 	###
 	saveFile: (fileName, fileContent) =>
+		
+		# try to save the file via an opened editor instance, if available
+		if instance = @codiad.active.sessions[fileName]
+			instance.setValue fileContent
+			# temporary disable handling of the save event
+			@ignoreSaveEvent = true
+			@codiad.active.save(fileName)
+			@ignoreSaveEvent = false
+			return
 		
 		baseDir = @getBaseDir fileName
 		
