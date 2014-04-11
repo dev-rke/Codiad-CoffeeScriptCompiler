@@ -2,8 +2,8 @@
     {
         "author" : "rke",
         "version": "0.5",
-        "name" : "Codiad CoffeeScript Compiler",
-        "url" : "",
+        "name" : "CoffeeScript Compiler",
+        "url" : "https://github.com/dev-rke/Codiad-CoffeeScriptCompiler",
         "rightbar": [{
             "action": "codiad.CoffeeScriptCompiler.showDialogWrapper();",
             "icon": "icon-cup",
