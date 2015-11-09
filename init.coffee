@@ -1,5 +1,5 @@
 ###
-	Copyright (c) 2013 - 2014, RKE
+	Copyright (c) 2013 - 2015, dev-rke
 ###
 
 class codiad.CoffeeScriptCompiler
